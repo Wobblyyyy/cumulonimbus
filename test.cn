@@ -1,0 +1,11 @@
+typedef Cloud {
+    Num heightMeters;
+}
+
+fun Int main() {
+    while (true) {
+        Int abc = 123;
+        Num pi = 3.14159;
+        Str string = "hello from c!";
+    }
+}
