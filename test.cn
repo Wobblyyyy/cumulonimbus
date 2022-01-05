@@ -2,10 +2,55 @@ typedef Cloud {
     Num heightMeters;
 }
 
-fun Int main() {
+fn Int add(Int a, Int b) {
+    return a + b;
+}
+
+fn Int main() {
     while (true) {
         Int abc = 123;
         Num pi = 3.14159;
         Str string = "hello from c!";
+        break;
+    }
+
+    fizzBuzz();
+
+    Int result = add(3, 3);
+
+    if (result == 0) return 100;
+    return result;
+}
+
+pub const Int MAX = 100;
+
+fn Void fizzBuzz() {
+    for (Int i = 1; i <= MAX; i++) {
+        Bool by3 = i % 3 == 0;
+        Bool by5 = i % 5 == 0;
+        if (by3) {
+            print("Fizz")
+        }
+        if (by5) {
+            print("Buzz");
+        }
+        print("\n");
     }
 }
+
+fn Bool comparisons() {
+    if (5 >= 6.0) {
+    }
+
+    if (3 != 3) {
+    }
+
+    if (100 % 2 == 0) {
+    }
+
+    if (4 <= 3) {
+    }
+
+    return true;
+}
+
