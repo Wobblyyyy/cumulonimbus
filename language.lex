@@ -2,8 +2,10 @@
 %option noyywrap
 
 %{
-    #define PARSE_ERROR 100
-    // #include <regex>
+    #define GENERAL_ERROR 100
+    #define TOKEN_ERROR 200
+    #define PARSE_ERROR 300
+
     #include <iostream>
     #include <vector>
 
@@ -54,8 +56,17 @@
         NONE
     };
 
-    vector<string> str_vec = { };
-    vector<TOKEN_TYPE> type_vec = { };
+    struct Token {
+        string text;
+        TOKEN_TYPE type;
+
+        Token(string text, TOKEN_TYPE type) {
+            this->text = text;
+            this->type = type;
+        }
+    };
+
+    vector<Token> tokens = { };
 
     string convert_type(TOKEN_TYPE type) {
         switch (type) {
@@ -99,11 +110,6 @@
             default: return "";
         }
     }
-
-    void push_back_vecs(string str, TOKEN_TYPE type) {
-        str_vec.push_back(str);
-        type_vec.push_back(type);
-    }
 %}
 
 INTEGER [+-]?[0-9]+
@@ -119,12 +125,12 @@ BRACE [\(\)\[\]\{\}]
 %%
 {NUMBER} {
     printf("(num: '%s')", yytext);
-    push_back_vecs(yytext, TOKEN_TYPE::NUM_LITERAL);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::NUM_LITERAL));
 }
 
 {INTEGER} {
     printf("(int: '%s')", yytext);
-    push_back_vecs(yytext, TOKEN_TYPE::INT_LITERAL);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::INT_LITERAL));
 }
 
 {KEYWORD} {
@@ -156,22 +162,22 @@ BRACE [\(\)\[\]\{\}]
     } else if (strcmp(yytext, "return") == 0) {
         tok = RETURN;
     }
-    push_back_vecs(yytext, tok);
+    tokens.push_back(*new Token(yytext, tok));
 }
 
 {TYPE} {
     printf("(type: '%s')", yytext);
-    push_back_vecs(yytext, TOKEN_TYPE::TYPE);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::TYPE));
 }
 
 {STRING_LITERAL} {
     printf("(str: '%s')", yytext);
-    push_back_vecs(yytext, TOKEN_TYPE::STR_LITERAL);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::STR_LITERAL));
 }
 
 {IDENTIFIER} {
     printf("(id: '%s')", yytext);
-    push_back_vecs(yytext, TOKEN_TYPE::IDENTIFIER);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::IDENTIFIER));
 }
 
 {OP} {
@@ -199,39 +205,32 @@ BRACE [\(\)\[\]\{\}]
     } else if (yytext == ">") {
         tok = OP_GREATER_THAN;
     }
-    push_back_vecs(yytext, tok);
+    tokens.push_back(*new Token(yytext, tok));
 }
 
 {STATEMENT_END} {
     printf("(;)");
-    push_back_vecs(yytext, TOKEN_TYPE::STATEMENT_END);
+    tokens.push_back(*new Token(yytext, TOKEN_TYPE::STATEMENT_END));
 }
 
 {BRACE} {
-    /*
-    if (regex_match(yytext, regex("[\(\[\{]"))) {
-        printf("!%s", yytext);
-    } else {
-        printf("%s!", yytext);
-    }
-    */
     printf("%s", yytext);
     using enum TOKEN_TYPE;
     TOKEN_TYPE tok;
-    if (yytext == "(") {
+    if (strcmp(yytext, "(") == 0) {
         tok = OPEN_BRACE;
-    } else if (yytext == ")") {
+    } else if (strcmp(yytext, ")") == 0) {
         tok = CLOSE_BRACE;
-    } else if (yytext == "[") {
+    } else if (strcmp(yytext, "[") == 0) {
         tok = OPEN_SQUARE;
-    } else if (yytext == "]") {
+    } else if (strcmp(yytext, "]") == 0) {
         tok = CLOSE_SQUARE;
-    } else if (yytext == "{") {
+    } else if (strcmp(yytext, "{") == 0) {
         tok = OPEN_CURLY;
-    } else if (yytext == "}") {
+    } else if (strcmp(yytext, "}") == 0) {
         tok = CLOSE_CURLY;
     }
-    push_back_vecs(yytext, tok);
+    tokens.push_back(*new Token(yytext, tok));
 }
 %%
 
@@ -250,18 +249,9 @@ int yywrap() {
 void parse_data() {
     yyFlexLexer *lexer = new yyFlexLexer();
     lexer->yylex();
-    for (int i = 0; i < str_vec.size(); i++) {
-        TOKEN_TYPE type = type_vec[i];
-        string converted = convert_type(type);
-        if (converted != "") {
-            if (converted.length() == 1) {
-                cout << converted;
-            } else {
-                cout << converted << "," << str_vec[i] << ";";
-            }
-        } else {
-            cout << str_vec[i];
-        }
+    for (Token token : tokens) {
+        string type_string = convert_type(token.type);
+        cout << type_string << ", " << token.text << endl;
     }
 }
 
